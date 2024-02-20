@@ -1,9 +1,6 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayDeque;
-import java.util.LinkedList;
-import java.util.Queue;
 import java.util.StringTokenizer;
 
 public class Main {
@@ -13,95 +10,109 @@ public class Main {
 	static int colorBlindSectionCount = 0;
 	static int nonColorBlindSectionCount = 0;
 	static boolean[][] isVisited;
-	
+
 	public static void main(String[] args) throws IOException {
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		StringTokenizer st = new StringTokenizer(br.readLine());
-		
+
 		N = Integer.parseInt(st.nextToken());
 		painting = new char[N][N];
 		isVisited = new boolean[N][N];
-		
+
 		for(int i = 0 ; i < N ; i++) {
 			char[] charArr = br.readLine().toCharArray();
 			for(int j = 0; j< N ; j++) {
 				painting[i][j] = charArr[j];
 			}
 		}
-		
+
 		// 적록색약인 경우
 		for(int i = 0 ; i< N ; i++) {
 			for(int j = 0 ; j < N ; j++) {
-				if(!isVisited[i][j]) countSection(i, j, true);
+				if(!isVisited[i][j]) {
+					isVisited[i][j] = true;
+					countSection(i, j, true);
+					colorBlindSectionCount++;
+//					for(int k = 0 ; k < N ; k ++) {
+//						for(int l =0 ; l < N ; l++) {
+//							if(isVisited[k][l]) System.out.print(colorBlindSectionCount+" ");
+//							else System.out.print("0 ");
+//						}
+//						System.out.println();
+//					}
+//					System.out.println("==============");
+				}
 			}
 		}
-		
+
 		isVisited = new boolean[N][N];
-		
+
 		// 적록색약이 아닌 경우
 		for(int i = 0 ; i< N ; i++) {
 			for(int j = 0 ; j < N ; j++) {
-				if(!isVisited[i][j]) countSection(i, j, false);
+				if(!isVisited[i][j]) {
+					isVisited[i][j] = true;
+					countSection(i, j, false);
+					nonColorBlindSectionCount++;
+//					for(int k = 0 ; k < N ; k ++) {
+//						for(int l =0 ; l < N ; l++) {
+//							if(isVisited[k][l]) System.out.print(nonColorBlindSectionCount+" ");
+//							else System.out.print("0 ");
+//						}
+//						System.out.println();
+//					}
+				}
 			}
 		}
-		
+
 		System.out.println(nonColorBlindSectionCount + " "+ colorBlindSectionCount);
 	}
-	
-	
+
+
 	private static void countSection(int i, int j, boolean isColorBlind) {
-		Queue<int[]> queue = new ArrayDeque<>();
-		
-		queue.offer(new int[] {i, j});
-		isVisited[i][j] = true;
-		
 		if(isColorBlind) {
-			while(!queue.isEmpty()) {
-				int[] currentIndex = queue.poll();
-				int r = currentIndex[0];
-				int c = currentIndex[1];
-				
-				for(int k = 0 ; k < 4 ; k++) {
-					int nr = r + deltas[k][0];
-					int nc = c + deltas[k][1];
-					if(nr < 0 || nr >=N || nc < 0 || nc >=N) continue;
-					if(isVisited[nr][nc]) continue;
-					if(painting[r][c] == painting[nr][nc]) {
-						queue.offer(new int[] {nr, nc});
-						isVisited[nr][nc] = true;
-					}
-					else if (painting[r][c] == 'R' && painting[nr][nc] == 'G') {
-						queue.offer(new int[] {nr, nc});
-						isVisited[nr][nc] = true;
-					}
-					else if (painting[r][c] == 'G' && painting[nr][nc] == 'R') {
-						queue.offer(new int[] {nr, nc});
-						isVisited[nr][nc] = true;
-					}
+			int r = i;
+			int c = j;
+
+			for(int k = 0 ; k < 4 ; k++) {
+				int nr = r + deltas[k][0];
+				int nc = c + deltas[k][1];
+				if(nr < 0 || nr >=N || nc < 0 || nc >=N) continue;
+				if(isVisited[nr][nc]) continue;
+				if(painting[r][c] == painting[nr][nc]) {
+					isVisited[nr][nc] = true;
+					countSection(nr, nc, true);
+				}
+				else if (painting[r][c] == 'R' && painting[nr][nc] == 'G') {
+					isVisited[nr][nc] = true;
+					countSection(nr, nc, true);
+				}
+				else if (painting[r][c] == 'G' && painting[nr][nc] == 'R') {
+					isVisited[nr][nc] = true;
+					countSection(nr, nc, true);
 				}
 			}
-			colorBlindSectionCount++;
-		}
-		else{
-			while(!queue.isEmpty()) {
-				int[] currentIndex = queue.poll();
-				int r = currentIndex[0];
-				int c = currentIndex[1];
-				isVisited[r][c] = true;
-				for(int k = 0 ; k < 4 ; k++) {
-					int nr = r + deltas[k][0];
-					int nc = c + deltas[k][1];
-					if(nr < 0 || nr >=N || nc < 0 || nc >=N) continue;
-					if(isVisited[nr][nc]) continue;
-					if(painting[r][c] == painting[nr][nc]) {
-						queue.offer(new int[] {nr, nc});
-						isVisited[nr][nc] = true;
-					}
-				}
-			}
-			nonColorBlindSectionCount++;
+			
 		}
 		
+		else {
+			int r = i;
+			int c = j;
+			
+			for(int k = 0 ; k < 4 ; k++) {
+				int nr = r + deltas[k][0];
+				int nc = c + deltas[k][1];
+				if(nr < 0 || nr >=N || nc < 0 || nc >=N) continue;
+				if(isVisited[nr][nc]) continue;
+				if(painting[r][c] == painting[nr][nc]) {
+					isVisited[nr][nc] = true;
+					countSection(nr, nc, false);
+				}
+			}
+			
+		}
+
 	}
+
 
 }
