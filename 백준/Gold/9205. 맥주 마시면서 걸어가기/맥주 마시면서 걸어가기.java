@@ -4,71 +4,72 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
-/**
- * 메모리:19156KB, 시간:228ms
- */
+
 public class Main {
-	static List<Node> list = new ArrayList<>();	//좌표값 저장
 	
-	static class Node{
-		int r,c;
+	public static class Node{
+		int r, c;
+
 		public Node(int r, int c) {
+			super();
 			this.r = r;
 			this.c = c;
 		}
-		//노드 간의 거리값 반환
-		public int getDis(Node n) {
-			return Math.abs(this.r - n.r) + Math.abs(this.c - n.c); 
+		
+		public int getDistance(Node n) {
+			return Math.abs(this.r - n.r) + Math.abs(this.c - n.c);
 		}
 		
-		//행복하게 갈 수 있는지 여부 반환
-		public boolean isPossible(Node n) {
-			return getDis(n) <= 1000;
+		public boolean isHappy(Node n) {
+			if(getDistance(n) <= 1000) return true;
+			else return false;
 		}
 	}
-	public static void main(String[] args) throws IOException {
+
+	public static void main(String[] args) throws NumberFormatException, IOException {
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		int T = Integer.parseInt(br.readLine()); // 테스트 케이스 수
 		
 		StringBuilder sb = new StringBuilder();
-		int T = Integer.parseInt(br.readLine());
-		for(int tc = 1; tc<=T; tc++) {
-			list.clear();
-			int n = Integer.parseInt(br.readLine()); //편의점 개수
+		
+		for(int tc = 0 ; tc < T ; tc++) {
+			List<Node> list = new ArrayList<>();
+			int conv = Integer.parseInt(br.readLine()); // 편의점 개수
 			
-			//step 1. 좌표 정보 저장
-			for(int i=0; i<n+2; i++) {
-				StringTokenizer st = new StringTokenizer(br.readLine());
+			// 입력 받아서 노드 만들어서 넣음
+			for(int i = 0 ; i < conv+2 ; i++) { // 편의점 수 + 출발점 + 도착점
+				StringTokenizer st= new StringTokenizer(br.readLine());
 				int r = Integer.parseInt(st.nextToken());
 				int c = Integer.parseInt(st.nextToken());
-				
-				list.add(new Node(r,c));
+				Node n = new Node(r, c);
+				list.add(n);
 			}
 			
-			//step 2. 좌표 정보 활용해 각 지점간에 행복하게 이동가능한지 여부 체크
-			boolean[][] d = new boolean[n+2][n+2];	//동적 배열 - i-> j까지 행복하게 갈수있는지 여부(모든 경유지고려)
-			for(int i=0; i<n+2; i++) {
-				for(int j=0; j<n+2; j++) {
-					d[i][j] =  list.get(i).isPossible(list.get(j));
+			// 두 점 사이 이동가능한지 담아두는 배열
+			boolean[][] dis = new boolean[conv+2][conv+2];
+			for(int i = 0 ; i < conv+2 ; i++) {
+				for(int j = 0 ; j < conv+2 ; j++) {
+					if(list.get(i).isHappy(list.get(j))) dis[i][j] = true;
 				}
 			}
 			
-			//step 3. 플로이드 워샬 사용해 모든 경유지를 고려한 행복하게 이동가능한지 여부 갱신하기
-			// 경출도 = 경유지 -> 출발지 -> 도착지
-			for(int k=0; k<n+2; k++) {
-				for(int i=0; i<n+2; i++) {
-					for(int j=i; j<n+2; j++) {
-						//d[i][j]는 i-> j를 0~ k-1의 경유지를 고려해서 행복하게 이동가능한지 여부
-						//d[i][k]는 i-> k를 0~ k-1의 경유지를 고려해서 행복하게 이동가능한지 여부
-						if(d[i][k] && d[k][j]) {
-							d[i][j] = true;
-							d[j][i] = true;
+			// 플로이드 - 워샬 사용해서 거쳐 갈 수 있는 경로 포함 가능한 모든 경로를 true로 만든다.
+			for(int k = 0 ; k < conv+2 ; k++) {
+				for(int i = 0 ; i < conv+2 ; i++) {
+					for(int j = i ; j < conv+2 ; j++) {
+						// 무방향 그래프이기 때문에 j = i부터 시작해도 된다.
+						if(dis[i][k] && dis[k][j]) {
+							dis[i][j] = true;
+							dis[j][i] = true;
 						}
 					}
 				}
 			}
 			
-			sb.append( d[0][n+1]? "happy" : "sad").append("\n");
+			// 0번째 노드(출발점) 에서 n+1번쨰 노드(도착점)까지 이동이  가능하다면 happy, 불가능하다면 sad
+			sb.append(dis[0][conv+1]? "happy" : "sad").append("\n");
 		}
+		
 		System.out.println(sb);
 	}
 
