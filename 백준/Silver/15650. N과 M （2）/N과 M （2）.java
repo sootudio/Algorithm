@@ -30,11 +30,9 @@ public class Main {
 			return;
 		}
 		for(int i = idx ; i<= N ; i++) {
-			if(isVisited[i]) continue;
+			
 			sequence[cnt] = i;
-			isVisited[i] = true;
-			combi(i , cnt + 1);
-			isVisited[i] = false;
+			combi(i+1 , cnt + 1);
 		}
 	}
 
