@@ -1,12 +1,10 @@
-
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.StringTokenizer;
 
-public class Solution{
+public class Solution {
 	static int T, N, B, S; // 테스트케이스, 점원수, 선반높이, 점원키의합
 	static int[] heights; // 점원들의 키
 	static boolean[] isSelected; // 점원 고르는 배열
@@ -29,7 +27,7 @@ public class Solution{
 			}
 			
 			minH = Integer.MAX_VALUE; // 초기화
-			select(0);
+			select(0, 0);
 			
 			int result = minH - B;
 			
@@ -39,22 +37,22 @@ public class Solution{
 		
 	}
 
-	private static void select( int idx) {
+	private static void select(int idx, int sum) {
+		// 가지치기: 이미 최소를 넘었다면 return 해버리기
+		if(sum > minH) return;
 		// 기저조건: 모든 점원들 선택이 끝났다면
 		if(idx == N) {
-			int curH = 0;
-			for(int i = 0 ; i < N ; i++) {
-				if(isSelected[i]) curH += heights[i];
-			}
-			if(curH >= B)
-				minH = Math.min(minH, curH);
+			if(sum >= B)
+				minH = sum;
 			return;
 		}
 		// 유도파트: 직원들을 부분집합으로 고른다.
 		isSelected[idx] = true;
-		select(idx+1);
+		sum += heights[idx];
+		select(idx+1, sum);
 		isSelected[idx] = false;
-		select(idx+1);
+		sum -= heights[idx];
+		select(idx+1, sum);
 	}
 
 }
