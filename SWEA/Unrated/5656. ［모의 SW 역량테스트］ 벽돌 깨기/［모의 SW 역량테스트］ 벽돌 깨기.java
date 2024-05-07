@@ -1,153 +1,144 @@
 import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayDeque;
-import java.util.Deque;
+import java.util.Arrays;
 import java.util.StringTokenizer;
 
 public class Solution {
 	
-	static class Point{
-		int r, c, cnt;
+	static int N, W, H;// 구슬 개수, 넓이, 높이, 테스트 케이스
+	static int[][] map; // 처음 모양 담을 map
+	static int min, total; // 남은 벽돌의 최소 개수, 처음 벽돌의 개수
+	static int[][] deltas =  {{-1, 0},{0,1},{1,0},{0,-1}}; // 상 우 하 좌
 
-		public Point(int r, int c, int cnt) {
-			super();
-			this.r = r;
-			this.c = c;
-			this.cnt = cnt;
+	public static void main(String[] args) throws IOException {
+		//System.setIn(new FileInputStream("res/sample_input.txt"));
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		StringBuilder sb = new StringBuilder();
+		
+		int T = Integer.parseInt(br.readLine());
+		
+		
+		//테스트 케이스의 수만큼 반복
+		for(int tc = 1 ; tc <= T ; tc++) {
+			StringTokenizer st = new StringTokenizer(br.readLine());
+			N = Integer.parseInt(st.nextToken());
+			W = Integer.parseInt(st.nextToken());
+			H = Integer.parseInt(st.nextToken());
+			
+			map = new int[H][W];
+			total = 0;
+			
+			for(int i=0 ; i < H ; i++) {
+				st = new StringTokenizer(br.readLine());
+				for(int j = 0 ; j < W ; j++) {
+					map[i][j] = Integer.parseInt(st.nextToken());
+					if(map[i][j]>0) total++; // 벽돌의 총 개수 세기
+				}
+			}
+			
+			// for(int[] a:map) System.out.println(Arrays.toString(a)); System.out.println();
+			
+			min = total;
+			// 쏠 구슬을 골라서 벽돌의 최솟값을 구하는 permu 메서드 호출
+			permu(map, 0, 0);
+			// 구해진 최솟값 sb에 넣기
+			sb.append("#").append(tc).append(" ").append(min==total? 0:min).append("\n");
+		}
+		// 결과 출력
+		System.out.println(sb);
+	}
+
+	/**
+	 * 
+	 * @param map 지우는 2차원 배열 map
+	 * @param cnt 고른 구슬 개수
+	 * @param sum 부순 벽돌 수
+	 */
+	private static void permu(int[][] map, int cnt, int sum) {
+		// 기저조건: N개를 뽑았을 때
+		if(cnt == N) {
+			min = Math.min(min, total - sum);
+			return;
+		}
+		//부술 임시 배열 tap 선언
+		int[][] tap = new int[H][W];
+		// 유도파트: W개의 위치 중 중복해서 하나를 고름
+		for(int c = 0 ; c < W ; c++) {
+			int r = 0; // 시작 행
+			while(r<H &&map[r][c] == 0) r++; // 시작위치 찾기
+			if(r == H) continue; // 모든 행이 0이라면, 다른 행 찾음
+			
+			// 임시 배열 복사
+			for(int i = 0 ; i < H ; i++) {
+				for(int j = 0 ; j < W ; j++) {
+					tap[i][j] = map[i][j];
+				}
+			}
+			
+			// dfs의 결괏값은 깬 벽돌수.
+			int len = dfs(tap, r, c, tap[r][c]);
+			
+			if(len > 0) {
+				down(tap);
+				permu(tap, cnt+1, sum+len);
+			}
+			
 		}
 		
 	}
-	
-	static int dr[] = { -1, 1, 0, 0};
-	static int dc[] = {0,0, -1, 1};
-	static int N, H, W, min;
-	
 
-	public static void main(String[] args) throws NumberFormatException, IOException {
-		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-		int TC  = Integer.parseInt(br.readLine());
-		
-		for(int tc=1 ; tc<=TC ; tc++) {
-			StringTokenizer st = new StringTokenizer(br.readLine());
-			N = Integer.parseInt(st.nextToken()); // 벽돌 개수
-			W = Integer.parseInt(st.nextToken()); // map 넓이
-			H = Integer.parseInt(st.nextToken()); // map 높이
-			
-			int[][] map =  new int[H][W];
-			for(int i = 0 ; i < H ; i++) {
-				st = new StringTokenizer(br.readLine());
-				for(int j = 0 ; j < W; j++) {
-					map[i][j] = Integer.parseInt(st.nextToken());
-				}
+	
+	/**
+	 * 벽돌 깨는 함수
+	 * @param tap 벽돌을 깨는 배열
+	 * @param r 깰 벽돌 행
+	 * @param c 꺨 벽돌 열
+	 * @param size 깰 벽돌에 있는 숫자(깰 범위)
+	 * @return 깬 벽돌 수
+	 */
+	private static int dfs(int[][] tap, int r, int c, int size) {
+		int broken = 1; // 일단 한개는 깰거이므로
+		tap[r][c] = 0 ; // 깨기
+		for(int d = 0 ; d < 4 ; d++) {
+			for(int s = 1 ; s < size ; s++) {
+				int nr = r + deltas[d][0]*s;
+				int nc = c + deltas[d][1]*s;
+				if(nr<0 || nr >= H || nc <0 || nc>= W ) continue; // 경계 체크
+				if(tap[nr][nc] == 0) continue; // 빈칸 체크
+				broken += dfs(tap,nr, nc, tap[nr][nc]);
 			}
-			min = Integer.MAX_VALUE;
-			go(0, map); // 구슬 던진 개수 0, 초기 입력 상태의 map
-			System.out.println("#"+tc+" "+min);
 		}
+		
+		return broken;
 	}
 	
 	/**
-	 * 구슬 던지기
-	 * @param count 던져진 벽돌의 수
-	 * @param map 벽돌의 상태들이 있어있음
-	 * @return 던져서 벽돌이 모두 깨졌으면 true, 아니면 false 리턴
+	 * 남은 벽돌들 내리는 함수
+	 * @param tap 벽돌 내릴 배열 
 	 */
-	private static boolean go(int count, int[][] map) {
-		
-		int remainCnt = getRemain(map);
-		if(remainCnt == 0) {
-			min = 0;
-			return true; // 다 깨진 상황의 true 리턴
-		}
-		
-		if(count == N) {
-			min = Math.min(min, remainCnt);
-			return false; // 다 깨졌는지 여부 리턴
-		}
-		
-		// 모든 열에 던지기 시도
-		int[][] newMap = new int[H][W]; // 벽돌 깨는 값 계속 넣을 새로운 map
-		for(int c = 0 ; c < W; c++) { // 열 고정
-			// 구슬에 맞는 가장 윗벽돌 찾기
-			int r = 0;
-			while(r<H && map[r][c] == 0) ++r; // 빈 칸이면 맵 밖으로 나가기 전까지 구슬 내리기
-			
-			if(r==H) continue; // 맞는 벽돌이 없으므로 다음 열에 던지기 시도
-			
-			// 벽돌 깨뜨리기 전에 벽돌 복사
-			copy(map, newMap);
-			// 해당 벽돌 깨뜨리기
-			int brick = newMap[r][c];
-			// 연쇄 벽돌 처리
-			boom(r, c, newMap);
-			if(brick > 1) { // 1이면 자기 혼자만 터지므로 연쇄나 중력 처리 필요 없음
-				// 중력 작용 처리
-				down(newMap);
+	private static void down(int[][] tap) {
+		ArrayDeque<Integer> stack = new ArrayDeque<Integer>();
+		// 행 -> 열 순으로 탐색
+		for(int j = 0 ; j < W; j++) {
+			for(int i = 0 ; i < H ; i++) {
+				if(tap[i][j] > 0) {
+					stack.push(tap[i][j]);
+					tap[i][j] = 0;
+				}
+				
 			}
-			// 다음 구슬 던지러 가기
-			if(go(count+1, newMap)) return true;
-		}
-		return false;
-	}
-	
-	private static int getRemain(int[][] map) {
-		int cnt = 0;
-		for(int r = 0 ; r < H ; r++) {
-			for(int c= 0 ; c <  W ; c++) {
-				if(map[r][c] > 0 ) ++cnt;
-			}
-		}
-		return cnt;
-	}
-
-	private static Deque<Integer> stack = new ArrayDeque<>();
-	private static void down(int[][] map) {
-		for(int c = 0 ; c < W ; c++) {
-			for(int r  = 0 ; r <H ; r++) { // 윗행부터 깨지지 않은 벽돌 스택에 담기
-				if(map[r][c] == 0) continue;
-				stack.push(map[r][c]);
-				map[r][c] = 0;
-			}
-			
 			int r = H-1;
 			while(!stack.isEmpty()) {
-				map[r--][c] = stack.pop();
+				tap[r--][j] = stack.pop();
 			}
 		}
-	}
-
-	private static void boom(int r, int c, int[][] map) {
-		Deque<Point> q = new ArrayDeque<>();
-		// 방문처리하고 큐에 놓기
-		if(map[r][c] > 1) q.offer(new Point(r,c, map[r][c]));
-		map[r][c] = 0; //방문처리(벽돌 깨뜨리기)
 		
-		while(!q.isEmpty()) {
-			Point cur = q.poll();
-			
-			// 현재 벽돌에 쓰인 숫자 -1 만큰 사방탐색
-			for(int d = 0 ; d < 4 ; d++) {
-				int nr = cur.r;
-				int nc = cur.c;
-				for(int k = 1; k < cur.cnt ; k++) {
-					nr += dr[d];
-					nc += dc[d];
-					if(nr >= 0 && nr < H && nc >= 0 && nc < W && map[nr][nc] > 0) {
-						if(map[nr][nc] > 1) q.offer(new Point(nr, nc, map[nr][nc]));
-						map[nr][nc] = 0;
-					}
-				}
-			}
-		}
-	}
-
-	private static void copy(int[][] map, int[][] newMap) {
-		for(int r = 0 ; r < H; r++) {
-			for(int c = 0 ; c < W ; c++) {
-				newMap[r][c] = map[r][c];
-			}
-		}
+		
+		
 	}
 
 }
