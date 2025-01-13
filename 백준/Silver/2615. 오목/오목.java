@@ -4,50 +4,65 @@ import java.io.InputStreamReader;
 import java.util.StringTokenizer;
 
 public class Main {
-
-	public static void main(String[] args) throws IOException {
+	static int[][] board = new int[20][20];
+	static int winner;
+	static int winnerR;
+	static int winnerC;
+	static int[][] deltas = {{-1,1},{0,1},{1,1},{1,0},{1,-1},{0,-1},{-1,-1},{-1,0}};
+	
+	public static void main(String[] args) throws IOException{
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-		
-		int N = 19;
-		int[][] board = new int[19][19];
-		// 아래, 우하향, 오른쪽, 우상향, 위쪽, 좌상향, 왼쪽, 좌하향
-		// 앞 4개는 승리했는지 탐색하는데, 뒤 4개는 시작점인지 탐색하는데 사용
-		int[][] deltas = {{1,0},{1,1},{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1}};
-		
-		// 바둑판에 현재 상태 입력
-		for(int i= 0 ; i < N ; i++) {
+		for(int i = 1 ; i <= 19 ; i++) {
 			StringTokenizer st = new StringTokenizer(br.readLine());
-			for(int j = 0 ; j < N ; j++) {
+			for(int j = 1 ; j <= 19 ; j++) {
 				board[i][j] = Integer.parseInt(st.nextToken());
 			}
 		}
-		
-		for(int i=0 ; i < N ; i++) {
-			for(int j = 0; j < N ; j++) {
-				if(board[i][j] == 0) continue;
-				int value = board[i][j];
-				for(int k = 0; k < 4 ; k++) {
-					int cnt = 1;
-					int nx = i + deltas[k+4][0];
-					int ny = j + deltas[k+4][1];
-					if(nx >= 0 && nx < N && ny >=0 && ny < N && value == board[nx][ny]) 
-						continue;
-					nx = i + deltas[k][0];
-					ny = j + deltas[k][1];
-					while(nx >= 0 && nx < N && ny >=0 && ny < N &&  value == board[nx][ny]) {
-						cnt++;
-						nx += deltas[k][0];
-						ny += deltas[k][1];
-					}
-					if(cnt == 5) {
-						System.out.println(value);
-						System.out.println((i+1) + " "+ (j+1));
-						System.exit(0);
-					}
-				}
+		for(int i = 1 ; i <= 19 ; i++) {
+			for(int j = 1; j <= 19 ; j++) {
+				if(board[i][j] != 0) check(i, j);
+				if(winner != 0) break;
+			}
+			if(winner != 0) break;
+		}
+		System.out.println(winner);
+		if(winner != 0) System.out.println(winnerR + " " + winnerC);
+	}
+
+	private static void check(int r, int c) {
+		int num = board[r][c];
+		for(int d = 0 ; d < 4 ; d++) {
+			// 육목 체크
+			int pr = r + deltas[d+4][0];
+			int pc = c + deltas[d+4][1];
+			if(!isValid(pr,pc)) continue;
+			if(num == board[pr][pc]) continue;
+			// 오목 체크
+			int cnt = 1;
+			int cr = r;
+			int cc = c;
+			while(true) {
+				int nr = cr + deltas[d][0];
+				int nc = cc + deltas[d][1];
+				if(!isValid(nr, nc)) break;
+				if(num != board[nr][nc]) break;
+				cnt ++;
+				cr = nr;
+				cc = nc;
+			}
+			if(cnt == 5) {
+				winner = num;
+				winnerR = r;
+				winnerC = c;
+				break;
 			}
 		}
-		System.out.println(0);
+		
+	}
+
+	private static boolean isValid(int nr, int nc) {
+		if(nr >= 0 && nr <= 19 && nc >= 0 && nc <= 19) return true;
+		return false;
 	}
 
 }
