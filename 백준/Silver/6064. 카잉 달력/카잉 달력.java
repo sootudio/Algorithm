@@ -38,30 +38,17 @@ public class Main {
 	}
 	
 	public static int getCalendar(int lcm, int M, int N, int x, int y) {
-		int[] arr1 = new int[lcm/M];
+		Set<Integer> set = new HashSet<>();
 		int[] arr2 = new int[lcm/N];
 		
-		for(int i = 0 ; i < arr1.length ; i++) {
-			arr1[i] = x + (i * M);
+		for(int i = 0 ; i < lcm/M ; i++) {
+			set.add(x + (i * M));
 		}
-		for(int i = 0 ; i < arr2.length ; i++) {
-			arr2[i] = y + (i * N);
-		}
-		
-		int matchNum = getMatchNum(arr1, arr2);
-		return matchNum;
-	}
-	
-	public static int getMatchNum(int[] arr1, int[] arr2) {
-		Set<Integer> set = new HashSet<>();
-		for(int num : arr1) {
-			set.add(num);
-		}
-		for(int num : arr2) {
+		for(int i = 0 ; i < lcm/N ; i++) {
+			int num = y + (i * N);
 			if(set.contains(num)) return num;
 		}
 		
 		return -1;
 	}
-
 }
