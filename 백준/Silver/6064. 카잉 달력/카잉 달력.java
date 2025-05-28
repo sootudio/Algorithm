@@ -38,17 +38,12 @@ public class Main {
 	}
 	
 	public static int getCalendar(int lcm, int M, int N, int x, int y) {
-		Set<Integer> set = new HashSet<>();
-		int[] arr2 = new int[lcm/N];
 		
-		for(int i = 0 ; i < lcm/M ; i++) {
-			set.add(x + (i * M));
+		for(int i = 0 ; i < N ; i++) {
+			int candidate = x + i * M;
+			if(candidate > lcm) break;
+			if((candidate - 1) % N + 1 == y) return candidate;
 		}
-		for(int i = 0 ; i < lcm/N ; i++) {
-			int num = y + (i * N);
-			if(set.contains(num)) return num;
-		}
-		
 		return -1;
 	}
 }
